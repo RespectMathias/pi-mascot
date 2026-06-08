@@ -15,11 +15,22 @@ type Renderable = {
 type RenderableContainer = Renderable & { children: Renderable[] };
 type TuiLike = RenderableContainer & { requestRender(force?: boolean): void };
 
-const DEEP_BLUE: Rgb = [10, 25, 47];
-const BLUE: Rgb = [36, 99, 235];
-const SKY: Rgb = [56, 189, 248];
-const ICE: Rgb = [186, 230, 253];
-const PALETTE: Rgb[] = [DEEP_BLUE, BLUE, SKY, ICE, SKY, BLUE];
+const CHARCOAL: Rgb = [82, 82, 91];
+const SLATE: Rgb = [113, 113, 122];
+const GREY: Rgb = [161, 161, 170];
+const SILVER: Rgb = [212, 212, 216];
+const WHITE: Rgb = [244, 244, 245];
+
+const PALETTE: Rgb[] = [
+  CHARCOAL,
+  SLATE,
+  GREY,
+  SILVER,
+  WHITE,
+  SILVER,
+  GREY,
+  SLATE,
+];
 
 const ANSI_PATTERN =
   /[\u001B\u009B][[\]()#;?]*(?:(?:(?:[a-zA-Z\d]*(?:;[a-zA-Z\d]*)*)?\u0007)|(?:(?:\d{1,4}(?:;\d{0,4})*)?[\dA-PR-TZcf-nq-uy=><~]))/g;
@@ -47,6 +58,7 @@ function sampleGradient(position: number) {
   const t = scaled - index;
   const a = PALETTE[index]!;
   const b = PALETTE[nextIndex]!;
+
   return [mix(a[0], b[0], t), mix(a[1], b[1], t), mix(a[2], b[2], t)] as Rgb;
 }
 
@@ -57,6 +69,7 @@ function fg([r, g, b]: Rgb, text: string) {
 function gradientText(text: string, phase: number) {
   const chars = [...text];
   const span = Math.max(chars.length - 1, 1);
+
   return chars
     .map((char, index) => {
       if (char === " ") return char;
@@ -68,6 +81,7 @@ function gradientText(text: string, phase: number) {
 function center(text: string, width: number) {
   const length = [...text].length;
   if (length >= width) return text;
+
   return `${" ".repeat(Math.floor((width - length) / 2))}${text}`;
 }
 
@@ -143,6 +157,7 @@ export default function (pi: ExtensionAPI) {
   function installHeader(ctx: ExtensionContext) {
     ctx.ui.setHeader((tui) => {
       requestRender = () => tui.requestRender();
+
       return {
         render(width: number) {
           return renderHeader(width, 0, `${currentModelId} · ${projectName()}`);
@@ -156,7 +171,9 @@ export default function (pi: ExtensionAPI) {
 
   pi.on("session_start", (_event, ctx) => {
     currentModelId = ctx.model?.id ?? "no model selected";
+
     if (!ctx.hasUI) return;
+
     installHeader(ctx);
   });
 
@@ -170,7 +187,7 @@ export default function (pi: ExtensionAPI) {
   });
 
   pi.registerCommand("flow-title", {
-    description: "Enable the blue flowing gradient session header",
+    description: "Enable the flowing monochrome session header",
     handler: async (_args, ctx) => {
       installHeader(ctx);
       ctx.ui.notify("Flow title enabled", "info");
