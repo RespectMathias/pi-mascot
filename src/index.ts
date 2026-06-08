@@ -27,6 +27,7 @@ const ANSI_PATTERN =
 const TITLE_LINES = [
   "   ████████████████████   ",
   "   ██████  ████  ██████   ",
+  "   ██████  ████  ██████   ",
   "██████████████████████████",
   "      ████      ████      ",
   "      ████      ████      ",
@@ -41,14 +42,43 @@ function fg([r, g, b]: Rgb, text: string) {
 
 function shadeForPosition(column: number, row: number, width: number): Rgb {
   const x = width <= 1 ? 0 : column / (width - 1);
-  const y = row / Math.max(TITLE_LINES.length - 1, 1);
+  const centerDistance = Math.abs(x - 0.5);
 
-  const shade = x * 0.45 + y * 0.75;
+  const isOuterEdge = centerDistance > 0.38;
+  const isNearEdge = centerDistance > 0.28;
+  const isCenter = centerDistance < 0.18;
 
-  if (shade < 0.18) return HIGHLIGHT;
-  if (shade < 0.35) return LIGHT;
-  if (shade < 0.58) return MID;
-  if (shade < 0.78) return SHADOW;
+  if (row === 0) {
+    if (isOuterEdge) return MID;
+    if (isNearEdge) return LIGHT;
+    return HIGHLIGHT;
+  }
+
+  if (row === 1 || row === 2) {
+    if (isOuterEdge) return SHADOW;
+    if (isNearEdge) return MID;
+    return LIGHT;
+  }
+
+  if (row === 3) {
+    if (isOuterEdge) return DEEP_SHADOW;
+    if (isNearEdge) return SHADOW;
+    if (isCenter) return LIGHT;
+    return MID;
+  }
+
+  if (row >= 4 && row <= 6) {
+    if (isOuterEdge) return DEEP_SHADOW;
+    if (isNearEdge) return SHADOW;
+    return MID;
+  }
+
+  if (row === 7) {
+    if (isCenter) return MID;
+    if (isNearEdge) return SHADOW;
+    return DEEP_SHADOW;
+  }
+
   return DEEP_SHADOW;
 }
 
