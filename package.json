@@ -1,6 +1,6 @@
 {
   "name": "pi-mascot",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Pi extension: copy current thread user and assistant messages to clipboard.",
   "type": "module",
   "keywords": [
