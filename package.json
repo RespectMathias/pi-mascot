@@ -1,0 +1,57 @@
+{
+  "name": "pi-mascot",
+  "version": "0.1.0",
+  "description": "Pi extension: copy current thread user and assistant messages to clipboard.",
+  "type": "module",
+  "keywords": [
+    "pi-package",
+    "pi-extension",
+    "clipboard",
+    "pi-coding-agent",
+    "pi",
+    "mascot",
+    "transcript"
+  ],
+  "pi": {
+    "extensions": [
+      "./src/index.ts"
+    ]
+  },
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "check": "npm run typecheck && npm test",
+    "prepublishOnly": "npm run check",
+    "pack:dry": "npm pack --dry-run"
+  },
+  "peerDependencies": {
+    "@earendil-works/pi-coding-agent": "*"
+  },
+  "devDependencies": {
+    "@earendil-works/pi-coding-agent": "*",
+    "@types/node": "^24.0.0",
+    "typescript": "^5.9.0",
+    "vitest": "^4.0.0"
+  },
+  "author": "RespectMathias",
+  "license": "MIT",
+  "homepage": "https://github.com/RespectMathias/pi-mascot#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/RespectMathias/pi-mascot.git"
+  },
+  "bugs": {
+    "url": "https://github.com/RespectMathias/pi-mascot/issues"
+  },
+  "files": [
+    "src/",
+    "README.md",
+    "LICENSE"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
