@@ -15,8 +15,8 @@ type Renderable = {
 type RenderableContainer = Renderable & { children: Renderable[] };
 type TuiLike = RenderableContainer & { requestRender(force?: boolean): void };
 
-const SHADE: Rgb = [210, 210, 215];
-const OFF_WHITE: Rgb = [242, 242, 244];
+const LIGHT_GREY: Rgb = [210, 210, 215];
+const OFF_WHITE: Rgb = [235, 235, 238];
 const WHITE: Rgb = [255, 255, 255];
 
 const PALETTE: Rgb[] = [
@@ -24,9 +24,9 @@ const PALETTE: Rgb[] = [
   WHITE,
   OFF_WHITE,
   WHITE,
-  WHITE,
-  SHADE,
+  LIGHT_GREY,
   OFF_WHITE,
+  WHITE,
   WHITE,
 ];
 
