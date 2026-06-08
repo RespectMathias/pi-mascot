@@ -109,9 +109,10 @@ describe("flow-title extension", () => {
     const header = headerFactory(tui);
     const output = withoutAnsi(header.render(80).join("\n"));
 
-    expect(output).toContain("██████  ████  ██████");
+    expect(output).toContain("▄████████████████▄");
+    expect(output).toContain("█████  ████  █████");
     expect(output).toContain("██████████████████████████");
-    expect(output).toContain("████      ████");
+    expect(output).toContain("▄████      ████▄");
     expect(output).toContain("anthropic/claude-sonnet");
   });
 
