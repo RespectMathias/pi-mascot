@@ -15,11 +15,16 @@ type Renderable = {
 type RenderableContainer = Renderable & { children: Renderable[] };
 type TuiLike = RenderableContainer & { requestRender(force?: boolean): void };
 
-const HIGHLIGHT: Rgb = [255, 255, 255];
-const LIGHT: Rgb = [220, 220, 226];
-const MID: Rgb = [150, 150, 160];
-const SHADOW: Rgb = [90, 90, 102];
-const DEEP_SHADOW: Rgb = [45, 45, 55];
+const WHITE: Rgb = [255, 255, 255];
+const HEAD: Rgb = [230, 230, 235];
+const MOUTH: Rgb = [120, 120, 132];
+const LEG: Rgb = [170, 170, 180];
+const FOOT: Rgb = [70, 70, 82];
+
+const HEAD_SHADOW: Rgb = [185, 185, 195];
+const MOUTH_SHADOW: Rgb = [65, 65, 76];
+const LEG_SHADOW: Rgb = [115, 115, 128];
+const FOOT_SHADOW: Rgb = [38, 38, 48];
 
 const ANSI_PATTERN =
   /[\u001B\u009B][[\]()#;?]*(?:(?:(?:[a-zA-Z\d]*(?:;[a-zA-Z\d]*)*)?\u0007)|(?:(?:\d{1,4}(?:;\d{0,4})*)?[\dA-PR-TZcf-nq-uy=><~]))/g;
@@ -40,65 +45,42 @@ function fg([r, g, b]: Rgb, text: string) {
   return `\x1b[38;2;${r};${g};${b}m${text}${RESET}`;
 }
 
-function layerForRow(row: number) {
-  if (row <= 2) return "head";
-  if (row === 3) return "mouth";
-  if (row <= 6) return "legs";
-  return "feet";
+function mix(a: number, b: number, t: number) {
+  return Math.round(a + (b - a) * t);
+}
+
+function mixRgb(a: Rgb, b: Rgb, t: number): Rgb {
+  return [mix(a[0], b[0], t), mix(a[1], b[1], t), mix(a[2], b[2], t)];
+}
+
+function layerColor(row: number): { base: Rgb; shadow: Rgb } {
+  if (row <= 2) {
+    return { base: HEAD, shadow: HEAD_SHADOW };
+  }
+
+  if (row === 3) {
+    return { base: MOUTH, shadow: MOUTH_SHADOW };
+  }
+
+  if (row <= 6) {
+    return { base: LEG, shadow: LEG_SHADOW };
+  }
+
+  return { base: FOOT, shadow: FOOT_SHADOW };
 }
 
 function shadeForPosition(column: number, row: number, width: number): Rgb {
   const x = width <= 1 ? 0 : column / (width - 1);
-  const centerDistance = Math.abs(x - 0.5);
+  const { base, shadow } = layerColor(row);
 
-  const isOuterEdge = centerDistance > 0.4;
-  const isEdge = centerDistance > 0.28;
-  const isInner = centerDistance < 0.16;
-
-  const layer = layerForRow(row);
-
-  if (layer === "head") {
-    if (row === 0) {
-      if (isOuterEdge) return MID;
-      if (isEdge) return LIGHT;
-      return HIGHLIGHT;
-    }
-
-    if (row === 1) {
-      if (isOuterEdge) return SHADOW;
-      if (isEdge) return MID;
-      return LIGHT;
-    }
-
-    if (isOuterEdge) return MID;
-    if (isEdge) return LIGHT;
-    return LIGHT;
+  if (row === 0 && x < 0.35) {
+    return WHITE;
   }
 
-  if (layer === "mouth") {
-    if (isOuterEdge) return DEEP_SHADOW;
-    if (isEdge) return SHADOW;
-    if (isInner) return MID;
-    return SHADOW;
-  }
+  const rightShade = Math.max(0, (x - 0.45) / 0.55);
+  const shadowStrength = Math.min(rightShade, 1);
 
-  if (layer === "legs") {
-    if (isOuterEdge) return SHADOW;
-    if (isEdge) return MID;
-    if (isInner) return LIGHT;
-    return MID;
-  }
-
-  if (row === 7) {
-    if (isOuterEdge) return DEEP_SHADOW;
-    if (isEdge) return SHADOW;
-    if (isInner) return MID;
-    return SHADOW;
-  }
-
-  if (isOuterEdge) return DEEP_SHADOW;
-  if (isEdge) return SHADOW;
-  return MID;
+  return mixRgb(base, shadow, shadowStrength);
 }
 
 function shadedText(text: string, row = 0) {
@@ -122,6 +104,10 @@ function center(text: string, width: number) {
 
 function projectName() {
   return path.basename(process.cwd()) || "session";
+}
+
+function displayName() {
+  return process.env.USERNAME || process.env.USER || projectName();
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -195,7 +181,7 @@ export default function (pi: ExtensionAPI) {
 
       return {
         render(width: number) {
-          return renderHeader(width, `${currentModelId} · ${projectName()}`);
+          return renderHeader(width, `${currentModelId} · ${displayName()}`);
         },
         invalidate() {
           tui.requestRender();
@@ -222,7 +208,7 @@ export default function (pi: ExtensionAPI) {
   });
 
   pi.registerCommand("flow-title", {
-    description: "Enable the shaded monochrome session header",
+    description: "Enable the layered monochrome session header",
     handler: async (_args, ctx) => {
       installHeader(ctx);
       ctx.ui.notify("Flow title enabled", "info");
