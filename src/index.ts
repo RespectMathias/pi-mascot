@@ -15,16 +15,17 @@ type Renderable = {
 type RenderableContainer = Renderable & { children: Renderable[] };
 type TuiLike = RenderableContainer & { requestRender(force?: boolean): void };
 
-const WHITE: Rgb = [255, 255, 255];
-const HEAD: Rgb = [230, 230, 235];
-const MOUTH: Rgb = [120, 120, 132];
-const LEG: Rgb = [170, 170, 180];
-const FOOT: Rgb = [70, 70, 82];
+const WHITE: Rgb = [248, 248, 250];
 
-const HEAD_SHADOW: Rgb = [185, 185, 195];
-const MOUTH_SHADOW: Rgb = [65, 65, 76];
-const LEG_SHADOW: Rgb = [115, 115, 128];
-const FOOT_SHADOW: Rgb = [38, 38, 48];
+const HEAD: Rgb = [220, 220, 226];
+const MOUTH: Rgb = [184, 184, 194];
+const LEG: Rgb = [204, 204, 212];
+const FOOT: Rgb = [168, 168, 180];
+
+const HEAD_SHADOW: Rgb = [198, 198, 206];
+const MOUTH_SHADOW: Rgb = [160, 160, 172];
+const LEG_SHADOW: Rgb = [180, 180, 190];
+const FOOT_SHADOW: Rgb = [142, 142, 154];
 
 const ANSI_PATTERN =
   /[\u001B\u009B][[\]()#;?]*(?:(?:(?:[a-zA-Z\d]*(?:;[a-zA-Z\d]*)*)?\u0007)|(?:(?:\d{1,4}(?:;\d{0,4})*)?[\dA-PR-TZcf-nq-uy=><~]))/g;
@@ -73,12 +74,12 @@ function shadeForPosition(column: number, row: number, width: number): Rgb {
   const x = width <= 1 ? 0 : column / (width - 1);
   const { base, shadow } = layerColor(row);
 
-  if (row === 0 && x < 0.35) {
+  if (row === 0 && x < 0.32) {
     return WHITE;
   }
 
-  const rightShade = Math.max(0, (x - 0.45) / 0.55);
-  const shadowStrength = Math.min(rightShade, 1);
+  const rightShade = Math.max(0, (x - 0.5) / 0.5);
+  const shadowStrength = Math.min(rightShade, 1) * 0.75;
 
   return mixRgb(base, shadow, shadowStrength);
 }
