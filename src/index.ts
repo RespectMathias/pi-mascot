@@ -15,20 +15,11 @@ type Renderable = {
 type RenderableContainer = Renderable & { children: Renderable[] };
 type TuiLike = RenderableContainer & { requestRender(force?: boolean): void };
 
-const LIGHT_GREY: Rgb = [210, 210, 215];
-const OFF_WHITE: Rgb = [235, 235, 238];
-const WHITE: Rgb = [255, 255, 255];
-
-const PALETTE: Rgb[] = [
-  WHITE,
-  WHITE,
-  OFF_WHITE,
-  WHITE,
-  LIGHT_GREY,
-  OFF_WHITE,
-  WHITE,
-  WHITE,
-];
+const HIGHLIGHT: Rgb = [255, 255, 255];
+const LIGHT: Rgb = [220, 220, 226];
+const MID: Rgb = [150, 150, 160];
+const SHADOW: Rgb = [90, 90, 102];
+const DEEP_SHADOW: Rgb = [45, 45, 55];
 
 const ANSI_PATTERN =
   /[\u001B\u009B][[\]()#;?]*(?:(?:(?:[a-zA-Z\d]*(?:;[a-zA-Z\d]*)*)?\u0007)|(?:(?:\d{1,4}(?:;\d{0,4})*)?[\dA-PR-TZcf-nq-uy=><~]))/g;
@@ -44,34 +35,31 @@ const TITLE_LINES = [
   "    ▀▀▀▀          ▀▀▀▀    ",
 ];
 
-function mix(a: number, b: number, t: number) {
-  return Math.round(a + (b - a) * t);
-}
-
-function sampleGradient(position: number) {
-  const wrapped = ((position % 1) + 1) % 1;
-  const scaled = wrapped * PALETTE.length;
-  const index = Math.floor(scaled);
-  const nextIndex = (index + 1) % PALETTE.length;
-  const t = scaled - index;
-  const a = PALETTE[index]!;
-  const b = PALETTE[nextIndex]!;
-
-  return [mix(a[0], b[0], t), mix(a[1], b[1], t), mix(a[2], b[2], t)] as Rgb;
-}
-
 function fg([r, g, b]: Rgb, text: string) {
   return `\x1b[38;2;${r};${g};${b}m${text}${RESET}`;
 }
 
-function gradientText(text: string, phase: number) {
+function shadeForPosition(column: number, row: number, width: number): Rgb {
+  const x = width <= 1 ? 0 : column / (width - 1);
+  const y = row / Math.max(TITLE_LINES.length - 1, 1);
+
+  const shade = x * 0.45 + y * 0.75;
+
+  if (shade < 0.18) return HIGHLIGHT;
+  if (shade < 0.35) return LIGHT;
+  if (shade < 0.58) return MID;
+  if (shade < 0.78) return SHADOW;
+  return DEEP_SHADOW;
+}
+
+function shadedText(text: string, row = 0) {
   const chars = [...text];
-  const span = Math.max(chars.length - 1, 1);
+  const width = Math.max(chars.length, 1);
 
   return chars
-    .map((char, index) => {
+    .map((char, column) => {
       if (char === " ") return char;
-      return fg(sampleGradient(index / span + phase), char);
+      return fg(shadeForPosition(column, row, width), char);
     })
     .join("");
 }
@@ -134,16 +122,16 @@ function isBlankSpacer(component: Renderable) {
   return renderedText(component).trim() === "";
 }
 
-function renderHeader(width: number, phase: number, subtitleText: string) {
+function renderHeader(width: number, subtitleText: string) {
   const lines = TITLE_LINES.map((line, row) =>
-    gradientText(center(line, width), phase + row * 0.045),
+    shadedText(center(line, width), row),
   );
   const subtitle = center(subtitleText, width);
 
   return [
     "",
     ...lines,
-    `${BOLD}${gradientText(subtitle, phase + 0.18)}${RESET}`,
+    `${BOLD}${shadedText(subtitle, TITLE_LINES.length + 1)}${RESET}`,
     "",
   ];
 }
@@ -158,7 +146,7 @@ export default function (pi: ExtensionAPI) {
 
       return {
         render(width: number) {
-          return renderHeader(width, 0, `${currentModelId} · ${projectName()}`);
+          return renderHeader(width, `${currentModelId} · ${projectName()}`);
         },
         invalidate() {
           tui.requestRender();
@@ -185,7 +173,7 @@ export default function (pi: ExtensionAPI) {
   });
 
   pi.registerCommand("flow-title", {
-    description: "Enable the flowing monochrome session header",
+    description: "Enable the shaded monochrome session header",
     handler: async (_args, ctx) => {
       installHeader(ctx);
       ctx.ui.notify("Flow title enabled", "info");
