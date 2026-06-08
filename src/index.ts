@@ -40,46 +40,65 @@ function fg([r, g, b]: Rgb, text: string) {
   return `\x1b[38;2;${r};${g};${b}m${text}${RESET}`;
 }
 
+function layerForRow(row: number) {
+  if (row <= 2) return "head";
+  if (row === 3) return "mouth";
+  if (row <= 6) return "legs";
+  return "feet";
+}
+
 function shadeForPosition(column: number, row: number, width: number): Rgb {
   const x = width <= 1 ? 0 : column / (width - 1);
   const centerDistance = Math.abs(x - 0.5);
 
-  const isOuterEdge = centerDistance > 0.38;
-  const isNearEdge = centerDistance > 0.28;
-  const isCenter = centerDistance < 0.18;
+  const isOuterEdge = centerDistance > 0.4;
+  const isEdge = centerDistance > 0.28;
+  const isInner = centerDistance < 0.16;
 
-  if (row === 0) {
+  const layer = layerForRow(row);
+
+  if (layer === "head") {
+    if (row === 0) {
+      if (isOuterEdge) return MID;
+      if (isEdge) return LIGHT;
+      return HIGHLIGHT;
+    }
+
+    if (row === 1) {
+      if (isOuterEdge) return SHADOW;
+      if (isEdge) return MID;
+      return LIGHT;
+    }
+
     if (isOuterEdge) return MID;
-    if (isNearEdge) return LIGHT;
-    return HIGHLIGHT;
-  }
-
-  if (row === 1 || row === 2) {
-    if (isOuterEdge) return SHADOW;
-    if (isNearEdge) return MID;
+    if (isEdge) return LIGHT;
     return LIGHT;
   }
 
-  if (row === 3) {
+  if (layer === "mouth") {
     if (isOuterEdge) return DEEP_SHADOW;
-    if (isNearEdge) return SHADOW;
-    if (isCenter) return LIGHT;
-    return MID;
+    if (isEdge) return SHADOW;
+    if (isInner) return MID;
+    return SHADOW;
   }
 
-  if (row >= 4 && row <= 6) {
-    if (isOuterEdge) return DEEP_SHADOW;
-    if (isNearEdge) return SHADOW;
+  if (layer === "legs") {
+    if (isOuterEdge) return SHADOW;
+    if (isEdge) return MID;
+    if (isInner) return LIGHT;
     return MID;
   }
 
   if (row === 7) {
-    if (isCenter) return MID;
-    if (isNearEdge) return SHADOW;
-    return DEEP_SHADOW;
+    if (isOuterEdge) return DEEP_SHADOW;
+    if (isEdge) return SHADOW;
+    if (isInner) return MID;
+    return SHADOW;
   }
 
-  return DEEP_SHADOW;
+  if (isOuterEdge) return DEEP_SHADOW;
+  if (isEdge) return SHADOW;
+  return MID;
 }
 
 function shadedText(text: string, row = 0) {
