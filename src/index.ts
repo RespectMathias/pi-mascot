@@ -15,21 +15,19 @@ type Renderable = {
 type RenderableContainer = Renderable & { children: Renderable[] };
 type TuiLike = RenderableContainer & { requestRender(force?: boolean): void };
 
-const CHARCOAL: Rgb = [82, 82, 91];
-const SLATE: Rgb = [113, 113, 122];
-const GREY: Rgb = [161, 161, 170];
-const SILVER: Rgb = [212, 212, 216];
-const WHITE: Rgb = [244, 244, 245];
+const SHADE: Rgb = [210, 210, 215];
+const OFF_WHITE: Rgb = [242, 242, 244];
+const WHITE: Rgb = [255, 255, 255];
 
 const PALETTE: Rgb[] = [
-  CHARCOAL,
-  SLATE,
-  GREY,
-  SILVER,
   WHITE,
-  SILVER,
-  GREY,
-  SLATE,
+  WHITE,
+  OFF_WHITE,
+  WHITE,
+  WHITE,
+  SHADE,
+  OFF_WHITE,
+  WHITE,
 ];
 
 const ANSI_PATTERN =
